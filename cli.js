@@ -147,22 +147,14 @@ function findDuplicates (propertyName, arr) {
 function getFigmaFile () {
   return new Promise((resolve) => {
     spinner.start('Fetching Figma file (this might take a while depending on the figma file size)')
-    figmaClient.get(`/files/${config.fileId}`)
+    console.log(config)
+    figmaClient.get(`/files/${config.fileId}/?ids=${config.ids}&geometry=paths`)
       .then((res) => {
         const endTime = new Date().getTime()
         spinner.succeed()
         console.log(chalk.cyan.bold(`Finished in ${(endTime - res.config.startTime) / 1000}s\n`))
-        const page = res.data.document.children.find(c => c.name === config.page)
-        if (!page) {
-          console.log(chalk.red.bold('Cannot find Icons Page, check your settings'))
-          return
-        }
-        if (!page.children.find(c => c.name === config.frame)) {
-          console.log(chalk.red.bold('Cannot find Icons Frame in this Page, check your settings'))
-          return
-        }
-        let icons = page.children.find(c => c.name === config.frame).children.map((icon) => {
-          return {id: icon.id, name: icon.name}
+        let icons = Object.entries(res.data.components).map(([key, value]) => {
+          return {id: key, name: value.name}
         })
         icons = findDuplicates('name', icons)
         resolve(icons)
@@ -170,7 +162,7 @@ function getFigmaFile () {
       .catch((err) => {
         spinner.fail()
         if (err.response) {
-          console.log(chalk.red.bold(`Cannot get Figma file: ${err.response.data.status} ${err.response.data.err}`))
+          console.log(chalk.red.bold(`Cannot get Figma file: ${JSON.stringify(err, null, 2)}`))
         } else {
           console.log(err)
         }

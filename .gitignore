@@ -5,3 +5,5 @@ node_modules
 
 #figma-export-icons
 icons-config.json
+#figma-export-icons
+../design-system/config.json
